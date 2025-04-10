@@ -1,67 +1,67 @@
 pipeline {
-    agent any 
+    agent any
 
     stages {
+        /*
 
-        // This a comment
-        /*stage('Build') {
-            agent{
+        stage('Build') {
+            agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
-            steps{
+            steps {
                 sh '''
-                ls -la
-                node --version
-                npm --version
-                npm ci
-                npm run build
-                ls -la
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la
                 '''
-
             }
-        }*/
+        }
+        */
 
-        stage ('Test') {
+        stage('Test') {
             agent {
-                docker{
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
-                    test -f build/index.html
+                    #test -f build/index.html
                     npm test
                 '''
             }
-
         }
-     stage ('E2E') {
+
+        stage('E2E') {
             agent {
-                docker{
+                docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                     args '-v $WORKSPACE:/app'
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
                     npm install serve
-                    node_modules/serve -s build & 
+                   node_modules/serve -s build &
                     sleep 10
                     npx playwright test
                 '''
             }
-
         }
-
     }
+
     post {
         always {
-            junit 'test-results/junit.xml'
+            junit 'jest-results/junit.xml'
         }
     }
 }

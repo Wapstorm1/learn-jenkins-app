@@ -111,7 +111,7 @@ pipeline {
             }
 
             environment {
-                CI_ENVIRONMENT_URL = 'http://localhost:3000'
+                CI_ENVIRONMENT_URL = 'https://stellular-kitsune-2b9909.netlify.app/'
     }
 
             steps {

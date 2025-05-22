@@ -17,6 +17,7 @@ pipeline {
             }
             steps {
                 sh '''
+                    echo 'Small change'
                     ls -la
                     node --version
                     npm --version
@@ -29,17 +30,15 @@ pipeline {
 
         stage('Tests') {
             parallel {
-                stage('Unit tests') {
+                stage('Unit Test') {
                     agent {
                         docker {
                             image 'node:18-alpine'
                             reuseNode true
                         }
                     }
-
                     steps {
                         sh '''
-                            #test -f build/index.html
                             npm test
                         '''
                     }
@@ -57,19 +56,27 @@ pipeline {
                             reuseNode true
                         }
                     }
-
                     steps {
                         sh '''
                             npm install serve
                             node_modules/.bin/serve -s build &
                             sleep 10
-                            npx playwright test  --reporter=html
+                            npx playwright test --reporter=html
                         '''
                     }
-
                     post {
                         always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Local E2E', reportTitles: '', useWrapperFileDirectly: true])
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: false,
+                                icon: '',
+                                keepAll: false,
+                                reportDir: 'playwright-report',
+                                reportFiles: 'index.html',
+                                reportName: 'Playwright local',
+                                reportTitles: '',
+                                useWrapperFileDirectly: true
+                            ])
                         }
                     }
                 }
@@ -89,10 +96,10 @@ pipeline {
                     node_modules/.bin/netlify --version
                     echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
+                    node_modules/.bin/netlify deploy --dir=build --no-build --json > deploy-output.json
                 '''
                 script {
-                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
+                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true).trim()
                 }
             }
         }
@@ -104,20 +111,26 @@ pipeline {
                     reuseNode true
                 }
             }
-
             environment {
                 CI_ENVIRONMENT_URL = "${env.STAGING_URL}"
             }
-
             steps {
                 sh '''
-                    npx playwright test  --reporter=html
+                    npx playwright test --reporter=html
                 '''
             }
-
             post {
                 always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Staging E2E', reportTitles: '', useWrapperFileDirectly: true])
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: false,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Playwright staging E2E',
+                        reportTitles: '',
+                        useWrapperFileDirectly: true
+                    ])
                 }
             }
         }
@@ -125,7 +138,7 @@ pipeline {
         stage('Approval') {
             steps {
                 timeout(time: 15, unit: 'MINUTES') {
-                    input message: 'Do you wish to deploy to production?', ok: 'Yes, I am sure!'
+                    input message: 'Ready to deploy?', ok: 'Yes, I am sure I want to deploy'
                 }
             }
         }
@@ -143,7 +156,7 @@ pipeline {
                     node_modules/.bin/netlify --version
                     echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --prod
+                    node_modules/.bin/netlify deploy --dir=build --prod --no-build
                 '''
             }
         }
@@ -155,20 +168,26 @@ pipeline {
                     reuseNode true
                 }
             }
-
             environment {
-                CI_ENVIRONMENT_URL = 'YOUR NETLIFY URL'
+                CI_ENVIRONMENT_URL = 'https://stellular-kitsune-2b9909.netlify.app'
             }
-
             steps {
                 sh '''
-                    npx playwright test  --reporter=html
+                    npx playwright test --reporter=html
                 '''
             }
-
             post {
                 always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Prod E2E', reportTitles: '', useWrapperFileDirectly: true])
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: false,
+                        reportDir: 'playwright-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Playwright prod E2E',
+                        reportTitles: '',
+                        useWrapperFileDirectly: true
+                    ])
                 }
             }
         }

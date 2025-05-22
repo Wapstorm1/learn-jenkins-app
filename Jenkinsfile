@@ -1,12 +1,12 @@
 pipeline {
-    agent any
+        agent any
 
-    environment {
+        environment {
         NETLIFY_SITE_ID = '362bbd0f-cb86-4581-85c9-21e9365d9f08'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
-    }
+        }
 
-    stages {
+     stages {
         
 
         stage('Build') {
@@ -31,7 +31,7 @@ pipeline {
         
 
 
-    stage ('Tests') {
+        stage ('Tests') {
         parallel {
             stage('Unit Test') {
                 agent {
@@ -79,7 +79,7 @@ pipeline {
         }
 
         }
-    }
+        }
 
      stage('Deploy staging') {
             agent {
@@ -98,7 +98,7 @@ pipeline {
                 '''
             }
             script {
-                env.STAGING_URL = sh(script: "node_modules/.bin/netlify deploy} --dir=build --no-build --json > deploy-output.json", returnStdout: true)
+                env.STAGING_URL = sh(script: "node_modules/.bin/netlify deploy --dir=build --no-build --json > deploy-output.json", returnStdout: true)
         }
 
             stage('Staging E2E') {
@@ -111,7 +111,7 @@ pipeline {
 
             environment {
                 CI_ENVIRONMENT_URL = "${env.STAGING_URL}"
-    }
+        }
 
             steps {
                 sh '''
@@ -166,7 +166,7 @@ pipeline {
 
             environment {
                 CI_ENVIRONMENT_URL = 'https://stellular-kitsune-2b9909.netlify.app'
-    }
+                    }
 
             steps {
                 sh '''

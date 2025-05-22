@@ -94,9 +94,11 @@ pipeline {
                     node_modules/.bin/netlify --version
                     echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
                     node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --no-build
+                    node_modules/.bin/netlify deploy --dir=build --no-build --json > deploy-output.json
                 '''
             }
+            script {
+                env.STAGING_URL = sh(script: "node_modules/.bin/netlify deploy} --dir=build --no-build --json > deploy-output.json", returnStdout: true)
         }
 
             stage('Staging E2E') {
@@ -108,7 +110,7 @@ pipeline {
             }
 
             environment {
-                CI_ENVIRONMENT_URL = 'https://stellular-kitsune-2b9909.netlify.app'
+                CI_ENVIRONMENT_URL = "${env.STAGING_URL}"
     }
 
             steps {

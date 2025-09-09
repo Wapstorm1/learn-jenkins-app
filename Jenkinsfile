@@ -91,12 +91,17 @@ stage('Tests') {
             }
             steps {
                 sh '''
-                npm install netlify-cli node-jq
-                node_modules/.bin/netlify --version
-                echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
-                node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json
+               apk add --no-cache jq
+
+npm install netlify-cli
+
+test -f build/index.html || { echo "❌ ERROR: build output not found"; exit 1; }
+
+echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
+
+npx netlify deploy --dir=build --json --message="CI deploy from Jenkins" | tee deploy-output.json
+
+jq -r '.deploy_url' deploy-output.json
                 '''
             }
         }

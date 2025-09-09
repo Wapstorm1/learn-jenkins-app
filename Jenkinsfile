@@ -87,12 +87,19 @@ pipeline {
             }
             steps {
                 sh '''
-                    npm install netlify-cli node-jq
-                    node_modules/.bin/netlify --version
-                    echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
-                    node_modules/.bin/netlify status
-                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
-                    node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json
+                 set -e  # Fail on any error
+
+apk add --no-cache jq
+
+npm install netlify-cli
+
+test -f build/index.html || { echo "❌ ERROR: build/index.html not found. Did you forget to run 'npm run build' in the build stage?"; exit 1; }
+
+echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
+
+npx netlify deploy --dir=build --json --message="CI deploy from Jenkins" | tee deploy-output.json
+
+jq -r '.deploy_url' deploy-output.json
                 '''
             }
         }

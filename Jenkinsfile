@@ -76,7 +76,7 @@ pipeline {
                 }
             }
         }
-   }
+   
 
         stage('Deploy staging') {
             agent {
@@ -143,7 +143,7 @@ pipeline {
         }
     }
 
-
+}
 
         
     

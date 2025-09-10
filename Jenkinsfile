@@ -9,9 +9,16 @@ pipeline {
 
    stages {
 
-        stage('Docker'){
-            steps {
-                sh 'docker build -t my-playwright .'
+        stage('AWS') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                }
+            }
+            stepls {
+                sh '''
+                
+                '''
             }
         }
 
@@ -96,12 +103,11 @@ pipeline {
 
             steps {
                 sh '''
-                    netlify --version
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
                     echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
-                    netlify status
-                    netlify deploy --dir=build --json > deploy-output.json
-                    CI_ENVIRONMENT_URL=$(jq -r '.deploy_url' deploy-output.json)
-                    npx playwright test  --reporter=html
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build
                 '''
             }
 
@@ -126,12 +132,11 @@ pipeline {
 
             steps {
                 sh '''
-                    node --version
-                    netlify --version
+                    npm install netlify-cli
+                    node_modules/.bin/netlify --version
                     echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                    netlify status
-                    netlify deploy --dir=build --prod
-                    npx playwright test  --reporter=html
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build --prod
                 '''
             }
 

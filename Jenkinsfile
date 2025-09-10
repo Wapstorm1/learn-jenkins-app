@@ -17,7 +17,7 @@ pipeline {
             }
             stepls {
                 sh '''
-                
+                aws --version
                 '''
             }
         }
